@@ -1,12 +1,14 @@
-import { it, expect, describe } from 'vitest';
+import { it, describe } from 'vitest';
+import { createProduct, db } from './mocks/db';
 
 describe('group', () => {
   it('should', async () => {
-    const response = await fetch('/categories');
-    const data = await response.json();
-    console.log(data);
-    expect(data).toHaveLength(3);
+    const product = await createProduct({ name: 'Apple' });
+    console.log('product', product);
 
-    expect(1).toBeTruthy();
+    const deletedProduct = db.product.delete((q) =>
+      q.where({ id: product.id }),
+    );
+    console.log('deleted', deletedProduct);
   });
 });

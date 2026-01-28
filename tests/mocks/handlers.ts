@@ -1,23 +1,16 @@
-import { http, HttpResponse } from "msw";
-import { products } from "./data";
+import { http, HttpResponse } from 'msw';
+import { db } from './db';
 
 export const handlers = [
-  http.get("/categories", () => {
-    return HttpResponse.json([
-      { id: 1, name: "Electronics" },
-      { id: 2, name: "Beauty" },
-      { id: 3, name: "Gardening" },
-    ]);
-  }),
-
-  http.get("/products", () => {
+  http.get('/products', () => {
+    const products = db.product.findMany((q) => q.where({}));
     return HttpResponse.json(products);
   }),
 
-  http.get("/products/:id", ({ params }) => {
-    const { id } = params;
-    const product = products.find((p) => p.id === Number(id));
-    if (!product) return new HttpResponse(null, { status: 404 });
+  http.get('/products/:id', ({ params }) => {
+    const product = db.product.findFirst((q) =>
+      q.where({ id: Number(params.id) }),
+    );
     return HttpResponse.json(product);
   }),
 ];

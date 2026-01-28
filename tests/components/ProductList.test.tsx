@@ -2,8 +2,22 @@ import { render, screen } from '@testing-library/react';
 import ProductList from '../../src/components/ProductList';
 import { server } from '../mocks/server';
 import { http, HttpResponse } from 'msw';
+import { createProduct, db } from '../mocks/db';
 
 describe('ProductList', () => {
+  const productIds: number[] = [];
+
+  beforeAll(async () => {
+    const products = await Promise.all([1, 2, 3].map(() => createProduct()));
+    productIds.push(...products.map((p) => p.id as number));
+  });
+
+  afterAll(() => {
+    db.product.deleteMany((q) =>
+      q.where({ id: (id: number) => productIds.includes(id) }),
+    );
+  });
+
   it('should render the list of products', async () => {
     render(<ProductList />);
 
