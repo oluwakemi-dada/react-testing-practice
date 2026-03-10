@@ -9,7 +9,9 @@ describe('ProductDetail', () => {
 
   beforeAll(async () => {
     const product = await createProduct();
-    productId = product.id as number;
+    productId = product.id;
+
+    console.log('PRODUCTS!!!!', product);
   });
 
   afterAll(() => {
@@ -19,10 +21,14 @@ describe('ProductDetail', () => {
   it('should render product details', async () => {
     const product = db.product.findFirst((q) => q.where({ id: productId }));
 
+    if (!product) {
+      throw new Error('Product not found in test setup');
+    }
+
     render(<ProductDetail productId={productId} />);
 
     expect(
-      await screen.findByText(new RegExp(product?.name as string)),
+      await screen.findByText(new RegExp(product.name)),
     ).toBeInTheDocument();
     expect(
       await screen.findByText(new RegExp(product.price.toString())),

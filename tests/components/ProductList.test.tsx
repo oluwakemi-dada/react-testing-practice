@@ -8,8 +8,11 @@ describe('ProductList', () => {
   const productIds: number[] = [];
 
   beforeAll(async () => {
-    const products = await Promise.all([1, 2, 3].map(() => createProduct()));
-    productIds.push(...products.map((p) => p.id as number));
+    const products = await Promise.all(
+      Array.from({ length: 3 }, () => createProduct()),
+    );
+
+    productIds.push(...products.map((p) => p.id));
   });
 
   afterAll(() => {
