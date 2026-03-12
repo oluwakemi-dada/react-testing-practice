@@ -1,9 +1,7 @@
-import { Toaster } from 'react-hot-toast';
-import ToastDemo from '../components/ToastDemo';
-import OrderStatusSelector from '../components/OrderStatusSelector';
+import BrowseProducts from './BrowseProductsPage';
 
 const PlaygroundPage = () => {
-  return <OrderStatusSelector onChange={(value) => console.log(value)} />;
+  return <BrowseProducts/>;
 };
 
 export default PlaygroundPage;

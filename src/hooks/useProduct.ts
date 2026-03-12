@@ -1,5 +1,5 @@
 import axios, { AxiosError } from "axios";
-import { useQuery } from "react-query";
+import { useQuery } from '@tanstack/react-query';
 import { Product } from "../entities";
 
 const useProduct = (productId: number) => {

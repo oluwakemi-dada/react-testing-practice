@@ -1,6 +1,6 @@
 import { Table } from "@radix-ui/themes";
 import axios from "axios";
-import { useQuery } from "react-query";
+import { useQuery } from '@tanstack/react-query';
 import { Link } from "react-router-dom";
 import QuantitySelector from "../components/QuantitySelector";
 import { Product } from "../entities";
