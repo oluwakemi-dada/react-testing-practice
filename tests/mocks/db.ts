@@ -23,14 +23,14 @@ export const db = {
 };
 
 export const createCategory = async (overrides: Partial<Category> = {}) => {
-  return await db.category.create({
+  return db.category.create({
     id: faker.number.int(),
     name: faker.commerce.department(),
     ...overrides,
   });
 };
 
-export const createProduct = (overrides: Partial<Product> = {}) => {
+export const createProduct = async (overrides: Partial<Product> = {}) => {
   return db.product.create({
     id: faker.number.int(),
     name: faker.commerce.productName(),

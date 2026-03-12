@@ -7,13 +7,54 @@ import { server } from '../mocks/server';
 import { http, delay, HttpResponse } from 'msw';
 import BrowseProducts from '../../src/pages/BrowseProductsPage';
 import { Theme } from '@radix-ui/themes';
+import userEvent from '@testing-library/user-event';
+import {
+  Category,
+  createCategory,
+  createProduct,
+  db,
+  Product,
+} from '../mocks/db';
+import { CartProvider } from '../../src/providers/CartProvider';
 
 describe('BrowseProductsPage', () => {
+  const categories: Category[] = [];
+  const products: Product[] = [];
+
+  beforeAll(async () => {
+    const [createdCategories, createdProducts] = await Promise.all([
+      Promise.all(
+        Array.from({ length: 3 }, (_, i) =>
+          createCategory({ id: i + 1, name: `Category ${i + 1}` }),
+        ),
+      ),
+      Promise.all(
+        Array.from({ length: 3 }, (_, i) => createProduct({ id: i + 1 })),
+      ),
+    ]);
+    categories.push(...createdCategories);
+    products.push(...createdProducts);
+  });
+
+  afterAll(() => {
+    const categoryIds = categories.map((c) => c.id);
+    db.category.deleteMany((q) =>
+      q.where({ id: (id: number) => categoryIds.includes(id) }),
+    );
+
+    const productIds = products.map((p) => p.id);
+    db.product.deleteMany((q) =>
+      q.where({ id: (id: number) => productIds.includes(id) }),
+    );
+  });
+
   const renderComponent = () => {
     render(
-      <Theme>
-        <BrowseProducts />
-      </Theme>,
+      <CartProvider>
+        <Theme>
+          <BrowseProducts />
+        </Theme>
+      </CartProvider>,
     );
   };
 
@@ -84,5 +125,30 @@ describe('BrowseProductsPage', () => {
     renderComponent();
 
     expect(await screen.findByText(/error/i)).toBeInTheDocument();
+  });
+
+  it('should render categories', async () => {
+    renderComponent();
+
+    const combobox = await screen.findByRole('combobox');
+    expect(combobox).toBeInTheDocument();
+
+    const user = userEvent.setup();
+    await user.click(combobox);
+
+    expect(screen.getByRole('option', { name: /all/i })).toBeInTheDocument();
+    categories.forEach((category) => {
+      expect(
+        screen.getByRole('option', { name: category.name }),
+      ).toBeInTheDocument();
+    });
+  });
+
+  it('should render products', async () => {
+    renderComponent();
+
+    for (const product of products) {
+      expect(await screen.findByText(product.name)).toBeInTheDocument();
+    }
   });
 });
