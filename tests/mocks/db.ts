@@ -30,18 +30,7 @@ export const createCategory = async (overrides: Partial<Category> = {}) => {
   });
 };
 
-// export const createProduct = async (overrides: Partial<Product> = {}) => {
-//   return db.product.create({
-//     id: faker.number.int(),
-//     name: faker.commerce.productName(),
-//     price: faker.number.int({ min: 1, max: 100 }),
-//     ...overrides,
-//     categoryId: faker.number.int(),
-//   });
-// };
-
 export const createProduct = async (overrides: Partial<Product> = {}) => {
-  // auto-create a category if none provided, so categoryId is always valid
   const categoryId = overrides.categoryId ?? (await createCategory()).id;
 
   return db.product.create({
