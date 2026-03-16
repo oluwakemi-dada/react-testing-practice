@@ -19,21 +19,51 @@ import { server } from '../mocks/server';
 import { simulateDelay, simulateError } from '../utils';
 
 describe('BrowseProductsPage', () => {
+  // const categories: Category[] = [];
+  // const products: Product[] = [];
+
+  // beforeAll(async () => {
+
+  //   const [createdCategories, createdProducts] = await Promise.all([
+  //     Promise.all(
+  //       Array.from({ length: 3 }, (_, i) =>
+  //         createCategory({ id: i + 1, name: `Category ${i + 1}` }),
+  //       ),
+  //     ),
+  //     Promise.all(
+  //       Array.from({ length: 3 }, (_, i) => createProduct({ id: i + 1 })),
+  //     ),
+  //   ]);
+  //   categories.push(...createdCategories);
+  //   products.push(...createdProducts);
+  // });
+
+  // afterAll(() => {
+  //   const categoryIds = categories.map((c) => c.id);
+  //   db.category.deleteMany((q) =>
+  //     q.where({ id: (id: number) => categoryIds.includes(id) }),
+  //   );
+
+  //   const productIds = products.map((p) => p.id);
+  //   db.product.deleteMany((q) =>
+  //     q.where({ id: (id: number) => productIds.includes(id) }),
+  //   );
+  // });
+
   const categories: Category[] = [];
   const products: Product[] = [];
 
   beforeAll(async () => {
-    const [createdCategories, createdProducts] = await Promise.all([
-      Promise.all(
-        Array.from({ length: 3 }, (_, i) =>
-          createCategory({ id: i + 1, name: `Category ${i + 1}` }),
-        ),
-      ),
-      Promise.all(
-        Array.from({ length: 3 }, (_, i) => createProduct({ id: i + 1 })),
-      ),
-    ]);
+    const createdCategories = await Promise.all(
+      [1, 2].map((item) => createCategory({ name: `Category ${item}` })),
+    );
     categories.push(...createdCategories);
+
+    const createdProducts = await Promise.all(
+      createdCategories.flatMap((category) =>
+        [1, 2].map(() => createProduct({ categoryId: category.id })),
+      ),
+    );
     products.push(...createdProducts);
   });
 
@@ -42,7 +72,6 @@ describe('BrowseProductsPage', () => {
     db.category.deleteMany((q) =>
       q.where({ id: (id: number) => categoryIds.includes(id) }),
     );
-
     const productIds = products.map((p) => p.id);
     db.product.deleteMany((q) =>
       q.where({ id: (id: number) => productIds.includes(id) }),
@@ -144,5 +173,52 @@ describe('BrowseProductsPage', () => {
     for (const product of products) {
       expect(await screen.findByText(product.name)).toBeInTheDocument();
     }
+  });
+
+  it('should filter products by category', async () => {
+    const { getCategoriesSkeleton } = renderComponent();
+
+    await waitForElementToBeRemoved(getCategoriesSkeleton);
+    const combobox = screen.getByRole('combobox');
+    const user = userEvent.setup();
+    await user.click(combobox);
+
+    const selectedCategory = categories[0];
+    const option = screen.getByRole('option', { name: selectedCategory.name });
+    await user.click(option);
+
+    const products = db.product.findMany((p) =>
+      p.where({ categoryId: selectedCategory.id }),
+    );
+    const rows = screen.getAllByRole('row');
+    const dataRows = rows.slice(1);
+    expect(dataRows).toHaveLength(products.length);
+
+    products.forEach((product) => {
+      expect(screen.getByText(product.name)).toBeInTheDocument();
+    });
+  });
+
+  it('should render all products if All category is selected', async () => {
+    const { getCategoriesSkeleton } = renderComponent();
+
+    await waitForElementToBeRemoved(getCategoriesSkeleton);
+    const combobox = screen.getByRole('combobox');
+    const user = userEvent.setup();
+    await user.click(combobox);
+
+    const option = screen.getByRole('option', {
+      name: /all/i,
+    });
+    await user.click(option);
+
+    const products = db.product.findMany();
+    const rows = screen.getAllByRole('row');
+    const dataRows = rows.slice(1);
+    expect(dataRows).toHaveLength(products.length);
+
+    products.forEach((product) => {
+      expect(screen.getByText(product.name)).toBeInTheDocument();
+    });
   });
 });

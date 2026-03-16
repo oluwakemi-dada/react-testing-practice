@@ -30,18 +30,40 @@ export const createCategory = async (overrides: Partial<Category> = {}) => {
   });
 };
 
+// export const createProduct = async (overrides: Partial<Product> = {}) => {
+//   return db.product.create({
+//     id: faker.number.int(),
+//     name: faker.commerce.productName(),
+//     price: faker.number.int({ min: 1, max: 100 }),
+//     ...overrides,
+//     categoryId: faker.number.int(),
+//   });
+// };
+
 export const createProduct = async (overrides: Partial<Product> = {}) => {
+  // auto-create a category if none provided, so categoryId is always valid
+  const categoryId = overrides.categoryId ?? (await createCategory()).id;
+
   return db.product.create({
     id: faker.number.int(),
     name: faker.commerce.productName(),
     price: faker.number.int({ min: 1, max: 100 }),
-    categoryId: faker.number.int(),
     ...overrides,
+    categoryId, // 👈 resolved last so it's always correct
   });
 };
 
 export const getProductsByCategory = (categoryId: number) =>
   db.product.findMany((q) => q.where({ categoryId }));
+
+export const getProductWithCategory = (productId: number) => {
+  const product = db.product.findFirst((q) => q.where({ id: productId }));
+  if (!product) return null;
+  const category = db.category.findFirst((q) =>
+    q.where({ id: product.categoryId }),
+  );
+  return { ...product, category };
+};
 
 export const getCategoryWithProducts = (categoryId: number) => {
   const category = db.category.findFirst((q) => q.where({ id: categoryId }));
