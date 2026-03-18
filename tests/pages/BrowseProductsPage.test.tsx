@@ -16,6 +16,7 @@ import {
   Product,
 } from '../mocks/db';
 import { simulateDelay, simulateError } from '../utils';
+import AllProviders from '../AllProviders';
 
 describe('BrowseProductsPage', () => {
   const categories: Category[] = [];
@@ -149,13 +150,7 @@ describe('BrowseProductsPage', () => {
 
   // Utils
   const renderComponent = () => {
-    render(
-      <CartProvider>
-        <Theme>
-          <BrowseProducts />
-        </Theme>
-      </CartProvider>,
-    );
+    render(<BrowseProducts />, { wrapper: AllProviders });
 
     const getProductsSkeleton = () =>
       screen.queryByRole('progressbar', { name: /products/i });

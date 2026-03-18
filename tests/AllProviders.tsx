@@ -1,5 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactNode } from 'react';
+import { CartProvider } from '../src/providers/CartProvider';
+import { Theme } from '@radix-ui/themes';
 
 const AllProviders = ({ children }: { children: ReactNode }) => {
   const queryClient = new QueryClient({
@@ -11,7 +13,11 @@ const AllProviders = ({ children }: { children: ReactNode }) => {
   });
 
   return (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      <CartProvider>
+        <Theme>{children}</Theme>
+      </CartProvider>
+    </QueryClientProvider>
   );
 };
 
