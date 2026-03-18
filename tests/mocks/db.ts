@@ -38,7 +38,7 @@ export const createProduct = async (overrides: Partial<Product> = {}) => {
     name: faker.commerce.productName(),
     price: faker.number.int({ min: 1, max: 100 }),
     ...overrides,
-    categoryId, // 👈 resolved last so it's always correct
+    categoryId, 
   });
 };
 

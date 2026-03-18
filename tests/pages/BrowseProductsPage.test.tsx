@@ -12,6 +12,7 @@ import {
   createCategory,
   createProduct,
   db,
+  getProductsByCategory,
   Product,
 } from '../mocks/db';
 import { simulateDelay, simulateError } from '../utils';
@@ -44,23 +45,6 @@ describe('BrowseProductsPage', () => {
       q.where({ id: (id: number) => productIds.includes(id) }),
     );
   });
-
-  const renderComponent = () => {
-    render(
-      <CartProvider>
-        <Theme>
-          <BrowseProducts />
-        </Theme>
-      </CartProvider>,
-    );
-
-    return {
-      getProductsSkeleton: () =>
-        screen.queryByRole('progressbar', { name: /products/i }),
-      getCategoriesSkeleton: () =>
-        screen.queryByRole('progressbar', { name: /categories/i }),
-    };
-  };
 
   it('should show a loading skeleton when fetching categories', () => {
     simulateDelay('/categories');
@@ -143,49 +127,69 @@ describe('BrowseProductsPage', () => {
   });
 
   it('should filter products by category', async () => {
-    const { getCategoriesSkeleton } = renderComponent();
-
-    await waitForElementToBeRemoved(getCategoriesSkeleton);
-    const combobox = screen.getByRole('combobox');
-    const user = userEvent.setup();
-    await user.click(combobox);
+    const { selectCategory, expectProductsToBeInTheDocument } =
+      renderComponent();
 
     const selectedCategory = categories[0];
-    const option = screen.getByRole('option', { name: selectedCategory.name });
-    await user.click(option);
+    await selectCategory(selectedCategory.name);
 
-    const products = db.product.findMany((p) =>
-      p.where({ categoryId: selectedCategory.id }),
-    );
-    const rows = screen.getAllByRole('row');
-    const dataRows = rows.slice(1);
-    expect(dataRows).toHaveLength(products.length);
-
-    products.forEach((product) => {
-      expect(screen.getByText(product.name)).toBeInTheDocument();
-    });
+    const products = getProductsByCategory(selectedCategory.id);
+    expectProductsToBeInTheDocument(products);
   });
 
   it('should render all products if All category is selected', async () => {
-    const { getCategoriesSkeleton } = renderComponent();
+    const { selectCategory, expectProductsToBeInTheDocument } =
+      renderComponent();
 
-    await waitForElementToBeRemoved(getCategoriesSkeleton);
-    const combobox = screen.getByRole('combobox');
-    const user = userEvent.setup();
-    await user.click(combobox);
-
-    const option = screen.getByRole('option', {
-      name: /all/i,
-    });
-    await user.click(option);
+    await selectCategory(/all/i);
 
     const products = db.product.findMany();
-    const rows = screen.getAllByRole('row');
-    const dataRows = rows.slice(1);
-    expect(dataRows).toHaveLength(products.length);
-
-    products.forEach((product) => {
-      expect(screen.getByText(product.name)).toBeInTheDocument();
-    });
+    expectProductsToBeInTheDocument(products);
   });
+
+  // Utils
+  const renderComponent = () => {
+    render(
+      <CartProvider>
+        <Theme>
+          <BrowseProducts />
+        </Theme>
+      </CartProvider>,
+    );
+
+    const getProductsSkeleton = () =>
+      screen.queryByRole('progressbar', { name: /products/i });
+
+    const getCategoriesSkeleton = () =>
+      screen.queryByRole('progressbar', { name: /categories/i });
+
+    const selectCategory = async (name: RegExp | string) => {
+      await waitForElementToBeRemoved(getCategoriesSkeleton);
+      const combobox = screen.getByRole('combobox');
+      const user = userEvent.setup();
+      await user.click(combobox);
+
+      const option = screen.getByRole('option', {
+        name,
+      });
+      await user.click(option);
+    };
+
+    const expectProductsToBeInTheDocument = (products: Product[]) => {
+      const rows = screen.getAllByRole('row');
+      const dataRows = rows.slice(1);
+      expect(dataRows).toHaveLength(products.length);
+
+      products.forEach((product) => {
+        expect(screen.getByText(product.name)).toBeInTheDocument();
+      });
+    };
+
+    return {
+      getProductsSkeleton,
+      getCategoriesSkeleton,
+      selectCategory,
+      expectProductsToBeInTheDocument,
+    };
+  };
 });
