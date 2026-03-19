@@ -61,3 +61,13 @@ export const getCategoryWithProducts = (categoryId: number) => {
   const products = getProductsByCategory(categoryId);
   return { ...category, products };
 };
+
+export const deleteCategory = (categoryId: number) => {
+  const category = db.category.findFirst((q) => q.where({ id: categoryId }));
+  if (!category) return null;
+
+  db.product.deleteMany((q) => q.where({ categoryId }));
+  db.category.delete((q) => q.where({ id: categoryId }));
+
+  return category;
+};
