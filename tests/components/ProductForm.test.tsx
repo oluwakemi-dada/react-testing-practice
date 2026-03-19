@@ -14,18 +14,35 @@ describe('ProductForm', () => {
     deleteCategory(category.id);
   });
 
+  const renderComponent = (product?: Product) => {
+    render(<ProductForm product={product} onSubmit={vi.fn()} />, {
+      wrapper: AllProviders,
+    });
+
+    return {
+      waitForFormToLoad: async () => await screen.findByRole('form'),
+      getInputs: () => {
+        return {
+          nameInput: screen.getByPlaceholderText(/name/i),
+          priceInput: screen.getByPlaceholderText(/price/i),
+          categoryInput: screen.getByRole('combobox', { name: /category/i }),
+        };
+      },
+    };
+  };
+
   it('should render form fields', async () => {
-    render(<ProductForm onSubmit={vi.fn()} />, { wrapper: AllProviders });
+    const { waitForFormToLoad, getInputs } = renderComponent();
 
-    await screen.findByRole('form');
+    await waitForFormToLoad();
 
-    expect(screen.getByPlaceholderText(/name/i)).toBeInTheDocument();
+    const { nameInput, priceInput, categoryInput } = getInputs();
 
-    expect(screen.getByPlaceholderText(/price/i)).toBeInTheDocument();
+    expect(nameInput).toBeInTheDocument();
 
-    expect(
-      screen.getByRole('combobox', { name: /category/i }),
-    ).toBeInTheDocument();
+    expect(priceInput).toBeInTheDocument();
+
+    expect(categoryInput).toBeInTheDocument();
   });
 
   it('should populate form fields when editing a product', async () => {
@@ -36,20 +53,16 @@ describe('ProductForm', () => {
       categoryId: category.id,
     };
 
-    render(<ProductForm product={product} onSubmit={vi.fn()} />, {
-      wrapper: AllProviders,
-    });
+    const { waitForFormToLoad, getInputs } = renderComponent(product);
 
-    await screen.findByRole('form');
+    await waitForFormToLoad();
 
-    expect(screen.getByPlaceholderText(/name/i)).toHaveValue(product.name);
+    const { nameInput, priceInput, categoryInput } = getInputs();
 
-    expect(screen.getByPlaceholderText(/price/i)).toHaveValue(
-      product.price.toString(),
-    );
+    expect(nameInput).toHaveValue(product.name);
 
-    expect(
-      screen.getByRole('combobox', { name: /category/i }),
-    ).toHaveTextContent(category.name);
+    expect(priceInput).toHaveValue(product.price.toString());
+
+    expect(categoryInput).toHaveTextContent(category.name);
   });
 });
