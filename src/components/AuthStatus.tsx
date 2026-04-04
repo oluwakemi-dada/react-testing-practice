@@ -11,7 +11,7 @@ const AuthStatus = () => {
   if (isAuthenticated)
     return (
       <div className="flex space-x-2 items-center">
-        <Text>{user!.name}</Text>
+        <Text>{user.name}</Text>
         <LogoutButton />
       </div>
     );
