@@ -34,12 +34,12 @@ describe('AuthStatus', () => {
     mockAuthState({
       isLoading: false,
       isAuthenticated: true,
-      user: { name: 'Mosh' },
+      user: { name: 'Oluwakemi' },
     });
 
     render(<AuthStatus />);
 
-    expect(screen.getByText(/mosh/i)).toBeInTheDocument();
+    expect(screen.getByText(/oluwakemi/i)).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: /log out/i }),
     ).toBeInTheDocument();
